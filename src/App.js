@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from './logo.svg';
 import socketIOClient from "socket.io-client";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {ListGroup, Container, Row, Col, Button} from 'react-bootstrap'
@@ -43,6 +42,11 @@ constructor() {
     roomName: "",
     currentRoom: "global",
     scrollToBottom: true,
+    windowHeight: '14rem',
+    windowVisible: "visible",
+    windowFooterHeight: "100%",
+    hidden: false,
+    collapseButton: "X"
   }
 }
 
@@ -87,8 +91,28 @@ scrollToBottom() {
   this.messageList.scrollTop = maxScrollTop > 0 ? maxScrollTop : 0;
 }
 
-selectRoom(room) {
+selectRoom = (room) => {
+    this.setState({currentRoom : room})
   socket.emit("selectRoom", {room: room})
+}
+toggleWindow = () => {
+    if (this.state.hidden === true) {
+        this.setState({
+                        windowHeight: "14rem", 
+                        windowVisible: "visible", 
+                        windowFooterHeight : "100%", 
+                        hidden:false,
+                        collapseButton: "X"
+                    })
+    } else {
+         this.setState({
+                        windowHeight: 0, 
+                        windowVisible: "hidden", 
+                        windowFooterHeight : 0, 
+                        hidden:true,
+                        collapseButton: ">"
+                    })
+    }
 }
 
 messages() {
@@ -125,17 +149,13 @@ createRoom = () => {
 render() {
     return (
       <div className="App">
-        
-        <Card>
-          <Card.Header style={{backgroundColor: "#5bc0de", borderRadius: 5}}>
-           
-          </Card.Header>
+             
+             <Container style={{position: "absolute", left: "0%", top:"0%", padding: 0}}
+             onMouseDown = {this.mouseDown}
+             onMouseUp = {this.mouseUp}
 
-          <Card.Body style={{height: "100%"}}>
-             <Container>
-              <Row>
-                <Col md={{ span: 4, offset: 0 }}>
-                  <Card style={{ width: '18rem' }}>
+             >
+                  <Card style={{ width: '10rem' }}>
                     <Card.Header style={{backgroundColor: "#5bc0de"}}>Rooms</Card.Header>
                     <ListGroup variant="flush" style={{height: '6rem', overflow:"scroll", border:"none"}}>
                      {this.rooms()}
@@ -146,27 +166,30 @@ render() {
                       <br />
                       <Button type='button' variant="primary" style={{width: "100%"}} onClick={this.createRoom}> Create </Button>
                     </Card.Footer>
-                  </Card></Col>
-              </Row>
+                  </Card>
+             
             </Container>
-            <br />
-            <Card.Footer className="text-muted">
-             <Container>
 
+
+            
+            <Container style={{position: "fixed", bottom:"0%"}}>
               <Row>
-
-                <Col md={{ span: 12 }}>
-                  <Card style={{ width: '100%'}}>
+                <Col md={{ span: 4, offset: 0 }}>
+                  <Card style={{ width: '18rem'}}>
                     <Card.Header style={{backgroundColor: "#5bc0de"}}>
-                        Messages
-                         <span style={{float:"right"}}>
-                          <h5 style={{fontFamily: 'Iowan Old Style'}}>Name:</h5>
-                           <input style={{borderRadius: 5}} type="text" name="name" onChange={this.textChange} value={this.state.name}></input>
-                        </span>
+                    {this.state.currentRoom}
+                    <Button 
+                            variant="primary"
+                            type="button"
+                            style={{position: "absolute", left: "85%", top: 5}}
+                            onClick={this.toggleWindow}
+                    >
+                    {this.state.collapseButton}
+                    </Button>
                     </Card.Header>
-                    <ListGroup 
+                     <ListGroup 
                       variant="flush" 
-                      style={{height: '14rem', overflow:"scroll", border:"none"}}
+                      style={{height: this.state.windowHeight, overflow:"scroll", border:"none"}}
                       onScroll={this.handleScroll}
                       ref={(div) => {
                         this.messageList = div;
@@ -174,24 +197,19 @@ render() {
                     }>
                      {this.messages()}
                     </ListGroup>
-                    <Card.Footer className="text-muted">
+                     <Card.Footer className="text-muted" style={{height: this.state.windowFooterHeight}}>
                       <form onSubmit={this.sendMessage}>
-                        <span style={{height: 50}}>
-                        <input style={{width: "60%"}} type="text" name="outGoingMessage" onChange={this.textChange} value={this.state.outGoingMessage}></input>
-                        <Button style={{marginBottom: 5, width: "30%", float:"right"}} type='submit' variant="info"> send </Button>
+                        <span style={{height: 0}}>
+                        <input autoComplete="off" style={{width: "100%", visibility: this.state.windowVisible}} type="text" name="outGoingMessage" onChange={this.textChange} value={this.state.outGoingMessage}></input>
+                        <br />
+                        <br />
+                        <Button style={{marginBottom: 5, width: "100%", float:"right"}} type='submit' variant="info"> send </Button>
                         </span>
                       </form>
                     </Card.Footer>
-                  </Card>
-                </Col>
+                  </Card></Col>
               </Row>
             </Container>
-
-            </Card.Footer>
-
-          </Card.Body>
-        </Card>
-
 
       
       </div>
